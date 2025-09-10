@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Дашборд Волков - Война фракций</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #222; color: #fff; text-align: center; }
+  .map { display: flex; flex-wrap: wrap; width: 600px; margin: 20px auto; }
+  .territory {
+    border: 1px solid #555;
+    width: 180px;
+    height: 100px;
+    margin: 5px;
+    position: relative;
+    padding: 5px;
+    border-radius: 8px;
+  }
+  .territory h3 { margin: 0; font-size: 16px; }
+  .stars { font-size: 14px; margin-top: 5px; }
+  .owner { position: absolute; top: 5px; right: 5px; font-weight: bold; }
+  .priority-red { background-color: #c0392b; }
+  .priority-green { background-color: #27ae60; }
+  .priority-gray { background-color: #7f8c8d; }
+  .priority-yellow { background-color: #f1c40f; }
+</style>
+</head>
+<body>
+
+<h1>Дашборд Волков - Война фракций</h1>
+<div class="map" id="map"></div>
+<button onclick="updateMap()">Обновить</button>
+
+<script>
+let data = {};
+
+async function loadData() {
+    const response = await fetch('data.json');
+    data = await response.json();
+    renderMap();
+}
+
+function getPriority(territory) {
+    const wolvesStars = territory.stars['Волки'];
+    const maxOther = Math.max(territory.stars['Медведи'], territory.stars['Львы']);
+
+    if (territory.owner === 'Волки' && wolvesStars < maxOther) return 'priority-red';
+    if (wolvesStars > maxOther + 5) return 'priority-green';
+    if (wolvesStars <= 5) return 'priority-gray';
+    return 'priority-yellow';
+}
+
+function renderMap() {
+    const mapDiv = document.getElementById('map');
+    mapDiv.innerHTML = '';
+    data.territories.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'territory ' + getPriority(t);
+        div.innerHTML = `<h3>${t.name}</h3>
+                         <div class="stars">Волки: ${t.stars['Волки']} ⭐<br>Медведи: ${t.stars['Медведи']} ⭐<br>Львы: ${t.stars['Львы']} ⭐</div>
+                         <div class="owner">${t.owner}</div>`;
+        mapDiv.appendChild(div);
+    });
+}
+
+function updateMap() {
+    loadData();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
